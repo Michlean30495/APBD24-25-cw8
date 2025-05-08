@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Tutorial8.Models.DTOs;
 using Tutorial8.Services;
 
 namespace Tutorial8.Controllers
@@ -25,10 +26,25 @@ namespace Tutorial8.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTrip(int id)
         {
-            // if( await DoesTripExist(id)){
-            //  return NotFound();
-            // }
-            // var trip = ... GetTrip(id);
+            var result = await _tripsService.GetClientTrips(id);
+            if (result == null)
+                return NotFound();
+            return Ok();
+        }
+        
+        [HttpPost("api/clients")]
+        public async Task<IActionResult> PostClient(ClientDTO client)
+        {
+            var result = await _tripsService.AddClient(client);
+            if (result == 0)
+                return BadRequest();
+            return Ok();    
+        }
+        
+        [HttpPut("/api/clients/{id}/trips/{tripId}")]
+        public async Task<IActionResult> RegisterClientToTrip(int id, int tripId)
+        {
+            await _tripsService.RegisterClientToTrip(id, tripId);
             return Ok();
         }
     }

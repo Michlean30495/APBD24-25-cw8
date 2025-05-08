@@ -6,5 +6,6 @@ public interface ITripsService
 {
     Task<List<TripDTO>> GetTrips();
     Task<List<ClientTripDTO>> GetClientTrips(int idClient);
-    
+    Task<int> AddClient(ClientDTO client);
+    Task<bool> RegisterClientToTrip(int idClient, int idTrip);
 }
