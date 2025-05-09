@@ -12,7 +12,9 @@ public class TripsService : ITripsService
     public async Task<List<TripDTO>> GetTrips()
     {
         var trips = new List<TripDTO>();
-
+        
+        var tripsMap = new Dictionary<int, TripDTO>();
+        
         string command = @"
             SELECT 
                 t.IdTrip, t.Name, t.Description, t.DateFrom, t.DateTo, t.MaxPeople,
@@ -32,26 +34,35 @@ public class TripsService : ITripsService
             {
                 while (await reader.ReadAsync())
                 {
-                    int idOrdinal = reader.GetOrdinal("IdTrip");
-                    var current = new TripDTO()
-                    {
-                        Id = reader.GetInt32(idOrdinal),
-                        Name = reader.GetString(1),
-                        Opis = reader.GetString(2),
-                        DataOd = reader.GetDateTime(3),
-                        DataDo = reader.GetDateTime(4),
-                        ileOsob = reader.GetInt32(5),
-                        Countries = new List<CountryDTO>()
-                    };
                     
-                    trips.Add(current);
+                    int idTrip = reader.GetInt32("IdTrip");
+
+                    if (!tripsMap.ContainsKey(idTrip))
+                    {
+                        var current = new TripDTO()
+                        {
+                            Id = idTrip,
+                            Name = reader.GetString(1),
+                            Opis = reader.GetString(2),
+                            DataOd = reader.GetDateTime(3),
+                            DataDo = reader.GetDateTime(4),
+                            ileOsob = reader.GetInt32(5),
+                            Countries = new List<CountryDTO>()
+                        };
+
+
+                        trips.Add(current);
+                        tripsMap.Add(idTrip, current);
+                    }
+
                     
                     if (!reader.IsDBNull(6))
                     {
-                        current.Countries.Add(new CountryDTO()
+                        tripsMap.GetValueOrDefault(idTrip).Countries.Add(new CountryDTO()
                         {
                             Name = reader.GetString(6)
                         });
+                        
                     }
                 }
             }
@@ -86,7 +97,6 @@ public class TripsService : ITripsService
 
             using (var reader = await cmd.ExecuteReaderAsync())
             {
-
                 while (await reader.ReadAsync())
                 {
                     int idTrip = reader.GetInt32(reader.GetOrdinal("IdTrip"));
@@ -99,8 +109,8 @@ public class TripsService : ITripsService
                         DateFrom = reader.GetDateTime(3),
                         DateTo = reader.GetDateTime(4),
                         MaxPeople = reader.GetInt32(5),
-                        RegisteredAt = reader.GetDateTime(6),
-                        PaymentDate = reader.IsDBNull(7) ? null : reader.GetDateTime(7),
+                        RegisteredAt = reader.GetInt32(6),
+                        PaymentDate = reader.IsDBNull(7) ? null : reader.GetInt32(7),
                         Countries = new List<CountryDTO>()
                     };
                     trips.Add(current);
@@ -115,7 +125,7 @@ public class TripsService : ITripsService
                 }
             }
         }
-        
+
         return trips;
     }
 
@@ -182,18 +192,19 @@ public class TripsService : ITripsService
             maxPeople.Parameters.AddWithValue("@IdTrip", idTrip);
             var resultMaxPeople = await maxPeople.ExecuteScalarAsync();
             
-            if ((int)resultMaxPeople >= (int) resultMaxPeople)
+            
+            if ((int)resultCount >= (int) resultMaxPeople)
                 throw new Exception("MaxPeople exceeded");
 
             var query5 = @"
                     INSERT INTO Client_Trip (IdClient, IdTrip, RegisteredAt)
-                        VALUES (@IdClient, @IdTrip, @RegisteredAt);
+                    VALUES (@IdClient, @IdTrip, @RegisteredAt);
                 "; 
             var finalResult = new SqlCommand(query5, conn, transaction);
             
             finalResult.Parameters.AddWithValue("@IdClient", idClient);
             finalResult.Parameters.AddWithValue("@IdTrip", idTrip);
-            finalResult.Parameters.AddWithValue("@RegisteredAt", DateTime.Now);
+            finalResult.Parameters.AddWithValue("@RegisteredAt", 1111111);
             
             await finalResult.ExecuteNonQueryAsync();
             
@@ -226,7 +237,7 @@ public class TripsService : ITripsService
             if (result == null)
                 throw new Exception("Nie ma wycieczki");
             
-            var finalQuery = "DELETE FROM Client WHERE IdClient = @IdClient AND IdTrip = @IdTrip";
+            var finalQuery = "DELETE FROM Client_Trip WHERE IdClient = @IdClient AND IdTrip = @IdTrip";
             
             var finalResult = new SqlCommand(finalQuery, conn, transaction);
             finalResult.Parameters.AddWithValue("@IdClient", idClient);

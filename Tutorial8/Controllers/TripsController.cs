@@ -29,30 +29,7 @@ namespace Tutorial8.Controllers
             var result = await _tripsService.GetClientTrips(id);
             if (result == null)
                 return NotFound();
-            return Ok();
-        }
-        
-        [HttpPost("api/clients")]
-        public async Task<IActionResult> PostClient(ClientDTO client)
-        {
-            var result = await _tripsService.AddClient(client);
-            if (result == 0)
-                return BadRequest();
-            return Ok();    
-        }
-        
-        [HttpPut("/api/clients/{id}/trips/{tripId}")]
-        public async Task<IActionResult> RegisterClientToTrip(int id, int tripId)
-        {
-            await _tripsService.RegisterClientToTrip(id, tripId);
-            return Ok();
-        }
-
-        [HttpDelete("api/clients/{id}/trips/{tripId}")]
-        public async Task<IActionResult> RemoveClientFromTrip(int id, int tripId)
-        {
-            await _tripsService.RemoveClientFromTrip(id, tripId);
-            return Ok();
+            return Ok(result);
         }
     }
 }
