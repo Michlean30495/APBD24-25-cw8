@@ -205,5 +205,42 @@ public class TripsService : ITripsService
             await transaction.RollbackAsync();
             return false;
         }
+        
+        
+    }
+
+    public async Task<bool> RemoveClientFromTrip(int idClient, int idTrip)
+    {
+        using var conn = new SqlConnection(_connectionString) ;
+        await conn.OpenAsync();
+        using var transaction = conn.BeginTransaction();
+        
+
+        try
+        {
+            var query1 = "SELECT 1 FROM Client_Trip WHERE IdClient = @IdClient AND IdTrip = @IdTrip";
+            var clientCheck = new SqlCommand(query1, conn, transaction);
+            clientCheck.Parameters.AddWithValue("@IdClient", idClient);
+            clientCheck.Parameters.AddWithValue("@IdTrip", idTrip);
+            var result = await clientCheck.ExecuteScalarAsync();
+            if (result == null)
+                throw new Exception("Nie ma wycieczki");
+            
+            var finalQuery = "DELETE FROM Client WHERE IdClient = @IdClient AND IdTrip = @IdTrip";
+            
+            var finalResult = new SqlCommand(finalQuery, conn, transaction);
+            finalResult.Parameters.AddWithValue("@IdClient", idClient);
+            finalResult.Parameters.AddWithValue("@IdTrip", idTrip);
+            
+            await finalResult.ExecuteNonQueryAsync();
+            
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
     }
 }

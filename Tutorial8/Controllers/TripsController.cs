@@ -47,5 +47,12 @@ namespace Tutorial8.Controllers
             await _tripsService.RegisterClientToTrip(id, tripId);
             return Ok();
         }
+
+        [HttpDelete("api/clients/{id}/trips/{tripId}")]
+        public async Task<IActionResult> RemoveClientFromTrip(int id, int tripId)
+        {
+            await _tripsService.RemoveClientFromTrip(id, tripId);
+            return Ok();
+        }
     }
 }
